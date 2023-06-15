@@ -4,7 +4,7 @@
 
 ### Packages
 
-packages <- c("gtools", "readr", "tibble", "dplyr", "data.table", "tidyr")
+packages <- c("gtools", "readr", "tibble", "dplyr", "data.table", "tidyr", "randomizr")
 
 lapply(packages, library, character.only = TRUE)
 
@@ -102,6 +102,6 @@ overall_count <- count(random_assignment, cond, day)
 
 ## Export random assignment document
 
-write.csv(df,
+write.csv(random_assignment,
           "./random_assignment.csv",
           row.names = FALSE)
