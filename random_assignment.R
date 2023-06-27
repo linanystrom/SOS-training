@@ -57,7 +57,9 @@ random_assignment <- random_assignment %>% mutate(
 
 random_assignment$sequence <- sample(perm_list$sequence, sample, replace=TRUE)
 
-### Separate data into sessions to ensure 5 participants are pleced in each condition, each session.
+## long form
+
+### Separate data into sessions to ensure 5 participants are placed in each condition, each session.
 
 random_assignment1 <- random_assignment[random_assignment$day == 1, ]
 random_assignment2 <- random_assignment[random_assignment$day == 2, ]
