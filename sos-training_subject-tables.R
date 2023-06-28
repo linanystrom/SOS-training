@@ -17,6 +17,8 @@ assignment <- read_csv("data/random_assignment.csv")
 
 mc_links   <- read_csv("data/mc-links.csv")
 
+jitsi_links <- read_csv("data/jitsi-links.csv")
+
 # Wrangle ----------------------------------------------------------------------
 
 if (!dir.exists("data/sub-data")) {
@@ -47,8 +49,9 @@ for (i in 1:length(unique(assignment$ID))) {
   df_long <- df_long %>%
     type_convert() %>% 
     left_join(mc_links, by = "mc") %>% 
+    left_join(jitsi_links, by = c("ID" = "id")) %>%
     select(
-      ID, interview, mc, link
+      ID, interview, mc, moderator_link, prolific_link, link
     )
   
   df_long$response_id <- NA
