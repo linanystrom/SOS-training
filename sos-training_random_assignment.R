@@ -1,10 +1,11 @@
-#Generating random assignment
+#Generating random assignment list
 
 ## Set up ----------------------------------------------------------------------
 
 ### Packages
 
-packages <- c("gtools", "readr", "tibble", "dplyr", "data.table", "tidyr", "randomizr")
+packages <- c("gtools", "readr", "tibble", "dplyr", "data.table", "tidyr",
+              "randomizr")
 
 lapply(packages, library, character.only = TRUE)
 
