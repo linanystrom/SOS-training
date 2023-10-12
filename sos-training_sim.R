@@ -28,7 +28,7 @@ set.seed(1337)
 nr_mcs    <- 6                   #Number of mock crimes
 nr_stages <- 6                   #Number of stages per mock crime
 nr_cond   <- 3                   #Number of conditions
-nr_int    <- 6                   #Number of interviews
+nr_int    <- 4                   #Number of interviews
 poss_det  <- 5                   #Possible details disclosed
 group_sz  <- 20                  #Group size
 sample    <- group_sz*nr_cond
@@ -40,7 +40,7 @@ MC          <- c("MC1","MC2","MC3", "MC4", "MC5", "MC6")
 cond        <- c("basic", "sos", "sos_delayed")
 
 stage     <- 0:(nr_stages - 1)
-interview <- 0:(nr_mcs  - 1)
+interview <- 0:(nr_int  - 1)
 detail    <- 0:(poss_det)
 id_mc     <- 1:sample
 time      <- 0:(data_point - 1)
@@ -55,7 +55,7 @@ df_full <- df[rep(1:nrow(df), group_sz * length(cond)), ]
 
 id <- sort(rep(1:(group_sz * length(cond)), data_point))
 
-mc <- rep((sample(MC, nr_mcs)), sample)
+mc <- rep((sample(MC, nr_int)), sample)
 
 df_full$id <- id
 
@@ -67,7 +67,7 @@ df_full <- df_full %>%
 mc_vec <- rep(NA, sample)
 
 for (i in 1:sample) {
-  make_mc <- list(sample(MC))
+  make_mc <- list(sample(MC, size = 4))
   mc_vec[i] <- make_mc
 }
 

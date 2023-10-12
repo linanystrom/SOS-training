@@ -108,3 +108,11 @@ overall_count <- count(random_assignment, cond, day)
 write.csv(random_assignment,
           "./random_assignment.csv",
           row.names = FALSE)
+
+## new assignment
+
+assignment <- read_csv("data/random_assignment.csv")
+
+direct_assignment <- assignment %>% filter(cond == "Basic")
+
+reassign <- sample_n(direct_assignment, 3) #ID 11, 54, 58
