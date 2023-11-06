@@ -116,3 +116,9 @@ assignment <- read_csv("data/random_assignment.csv")
 direct_assignment <- assignment %>% filter(cond == "Basic")
 
 reassign <- sample_n(direct_assignment, 3) #ID 11, 54, 58
+
+### Reassign for for halfway mark, direct to delayed
+
+b_id <- c(22,24,26)
+
+reassign_2 <- sample(b_id, 2)
