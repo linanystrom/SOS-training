@@ -10,9 +10,9 @@ packages <- c("gtools", "readr", "tibble", "dplyr", "data.table", "tidyr",
 
 lapply(packages, library, character.only = TRUE)
 
-interviewee_df <- read_csv() # Replace with real data
+interviewee_df <- read_csv("data/qualtrics_clean.csv") 
 
-interviewee_df$sos_training <- factor(interviewer_df$sos_training,
+qualtrics_clean$sos_training <- factor(qualtrics_clean$sos_training,
                                       levels = c(0, 1),
                                       labels = c("Basic","SoS")
                                       )
@@ -35,8 +35,8 @@ interviewee_age_table <- interviewee_df %>%
 interviewee_gender_table <- interviewee_df %>% 
   group_by(gender) %>% 
   summarise(
-    n = n()
-  )
+    n = n()) %>%
+      mutate(rel_freq = paste0(round(100 * n/sum(n), 0), "%"))
 
 # Pre-interview questionnaire --------------------------------------------------
 
@@ -45,23 +45,23 @@ interviewee_gender_table <- interviewee_df %>%
 condidence_desc <- interviewee_df %>% 
   group_by(sos_training) %>% 
   summarise(
-    Mean = mean(condidence, na.rm = TRUE),
-    SD = sd(condidence, na.rm = TRUE),
-    Median = median(condidence, na.rm = TRUE),
+    Mean = mean(confidence, na.rm = TRUE),
+    SD = sd(confidence, na.rm = TRUE),
+    Median = median(confidence, na.rm = TRUE),
     SE = SD/sqrt(n()),
     Upper = Mean + (1.96*SE),
     Lower = Mean - (1.96*SE)
   )
 
 confidence_test <- t.test(
-  condidence ~ sos_training,
+  confidence ~ sos_training,
   data = interviewee_df
 )
 
 ## Motivation
 
 motivation_desc <- interviewee_df %>% 
-  group_by(sos_training) %>% 
+  #group_by(sos_training) %>% 
   summarise(
     Mean = mean(motivation, na.rm = TRUE),
     SD = sd(motivation, na.rm = TRUE),
@@ -91,10 +91,10 @@ performance_desc <- interviewee_df %>%
 ### Main effects
 
 performance_simple_model <- lmer(self_assessment
-                              ~ sos_training
-                              ~ interview
+                                 ~ sos_training
+                              + interview
                               + (1|id) #interviewer
-                              + (1|mc_seq),
+                              + (1|mc),
                               data = interviewee_df,
                               REML = FALSE)
 
@@ -104,10 +104,10 @@ summary(performance_simple_model)
 
 performance_int_model <- lmer(self_assessment
                                  ~ sos_training
-                                 ~ interview
-                                 ~ sos_training*interview
+                                 + interview
+                                 + sos_training*interview
                                  + (1|id) #interviewer
-                                 + (1|mc_seq),
+                                 + (1|mc),
                                  data = interviewee_df,
                                  REML = FALSE)
 
@@ -132,9 +132,9 @@ knowledge_desc <- interviewee_df %>%
 
 knowledge_simple_model <- lmer(knowledge_before
                                  ~ sos_training
-                                 ~ interview
+                                 + interview
                                  + (1|id) #interviewer
-                                 + (1|mc_seq),
+                                 + (1|mc),
                                  data = interviewee_df,
                                  REML = FALSE)
 
@@ -144,10 +144,10 @@ summary(knowledge_simple_model)
 
 knowledge_int_model <- lmer(knowledge_before
                               ~ sos_training
-                              ~ interview
-                              ~ sos_training*interview
+                              + interview
+                              + sos_training*interview
                               + (1|id) #interviewer
-                              + (1|mc_seq),
+                              + (1|mc),
                               data = interviewee_df,
                               REML = FALSE)
 
@@ -172,7 +172,7 @@ yield_desc <- interviewee_df %>%
 
 yield_simple_model <- lmer(new_info
                                ~ sos_training
-                               ~ interview
+                               + interview
                                + (1|id) #interviewer
                                + (1|mc_seq),
                                data = interviewee_df,
@@ -184,8 +184,8 @@ summary(yield_simple_model)
 
 yield_int_model <- lmer(new_info
                             ~ sos_training
-                            ~ interview
-                            ~ sos_training*interview
+                            + interview
+                            + sos_training*interview
                             + (1|id) #interviewer
                             + (1|mc_seq),
                             data = interviewee_df,
@@ -209,11 +209,11 @@ change_strat_desc <- interviewee_df %>%
 
 ### Main effects
 
-change_strat_main_model <- glmer(change_strategy
+change_strat_main_model <- glmer(as.factor(change_strategy)
                                  ~ sos_training
-                                 ~ interview
+                                 + interview
                                  + (1|id) #interviewer
-                                 + (1|mc_seq),
+                                 + (1|mc),
                                  data = interviewee_df,
                                  family = binomial,
                                  control = glmerControl(optimizer = "bobyqa")
@@ -226,8 +226,8 @@ summary(change_strat_main_model)
 
 change_strat_int_model <- glmer(change_strategy
                                 ~ sos_training
-                                ~ interview
-                                ~ sos_training*interview
+                                + interview
+                                + sos_training*interview
                                 + (1|id) #interviewer
                                 + (1|mc_seq),
                                 data = interviewee_df,
@@ -268,9 +268,9 @@ interview_desc <- interviewee_df %>%
 
 interview_simple_model <- lmer(interview_perc
                            ~ sos_training
-                           ~ interview
+                           + interview
                            + (1|id) #interviewer
-                           + (1|mc_seq),
+                           + (1|mc),
                            data = interviewee_df,
                            REML = FALSE)
 
@@ -280,10 +280,10 @@ summary(interview_simple_model)
 
 interview_int_model <- lmer(interview_perc
                         ~ sos_training
-                        ~ interview
-                        ~ sos_training*interview
+                        + interview
+                        + sos_training*interview
                         + (1|id) #interviewer
-                        + (1|mc_seq),
+                        + (1|mc),
                         data = interviewee_df,
                         REML = FALSE)
 
@@ -308,9 +308,9 @@ interviewer_desc <- interviewee_df %>%
 
 interviewer_simple_model <- lmer(interviewer_perc
                                ~ sos_training
-                               ~ interview
+                               + interview
                                + (1|id) #interviewer
-                               + (1|mc_seq),
+                               + (1|mc),
                                data = interviewee_df,
                                REML = FALSE)
 
@@ -320,10 +320,10 @@ summary(interviewer_simple_model)
 
 interviewer_int_model <- lmer(interviewer_perc
                             ~ sos_training
-                            ~ interview
-                            ~ sos_training*interview
+                            + interview
+                            + sos_training*interview
                             + (1|id) #interviewer
-                            + (1|mc_seq),
+                            + (1|mc),
                             data = interviewee_df,
                             REML = FALSE)
 
@@ -336,7 +336,7 @@ anova(interviewer_simple_model, interviewer_int_model, refit=FALSE)
 ## Engagement with clips
 
 engagement_desc <- interviewee_df %>% 
-  group_by(sos_training) %>% 
+  #group_by(sos_training) %>% 
   summarise(
     Mean = mean(engagement, na.rm = TRUE),
     SD = sd(engagement, na.rm = TRUE),

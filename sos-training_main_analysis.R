@@ -10,7 +10,7 @@ packages <- c("gtools", "readr", "tibble", "dplyr", "data.table", "tidyr",
 
 lapply(packages, library, character.only = TRUE)
 
-my_df <- read_csv("./sim_training.csv") # Replace with real data
+my_df <- read_csv("data/excell_long.csv")
 
 # Plots ------------------------------------------------------------------------
 
@@ -35,9 +35,9 @@ plot_df$critical <- factor(plot_df$critical,
 desc <- plot_df %>% 
   group_by(sos_training, critical) %>% 
   summarise(
-    Mean = mean(trans_det, na.rm = TRUE),
-    SD = sd(trans_det, na.rm = TRUE),
-    Median = median(trans_det, na.rm = TRUE),
+    Mean = mean(detail, na.rm = TRUE),
+    SD = sd(detail, na.rm = TRUE),
+    Median = median(detail, na.rm = TRUE),
     SE = SD/sqrt(n()),
     Upper = Mean + (1.96*SE),
     Lower = Mean - (1.96*SE)
@@ -47,27 +47,54 @@ desc <- plot_df %>%
 ## Descriptive statistics - Also grouping by interview
 
 desc_by_interview <- plot_df %>% 
-  group_by(sos_training, critical, interview) %>% 
+  group_by(condition, interview, critical) %>% 
   summarise(
-    Mean = mean(trans_det, na.rm = TRUE),
-    SD = sd(trans_det, na.rm = TRUE),
-    Median = median(trans_det, na.rm = TRUE),
+    Mean = mean(detail, na.rm = TRUE),
+    SD = sd(detail, na.rm = TRUE),
+    Median = median(detail, na.rm = TRUE),
     SE = SD/sqrt(n()),
     Upper = Mean + (1.96*SE),
     Lower = Mean - (1.96*SE)
   )
 
+mean_plot_2 <- ggplot(desc_by_interview, aes(x = interview,
+                              y = Mean,
+                              colour = condition,
+                              group = condition)
+) + 
+  geom_errorbar(aes(
+    ymin = Lower,
+    ymax = Upper),
+    width = .1,
+    position = position_dodge(width = .2)
+  ) +
+  geom_point(
+    size = 2,
+    position = position_dodge(width = .2)
+  ) +
+  geom_line(
+    
+  ) +
+  labs(
+    y = "Disclosed details",
+    x = "Detail type",
+    color = "Condition"
+  ) +
+  facet_wrap(
+    ~ critical
+  )
+
 
 ## Means plot - Information disclosure
 
-mean_plot <- ggplot(desc, aes(x=critical,
-                              y=Mean,
-                              colour=sos_training)
+mean_plot <- ggplot(desc, aes(x = critical,
+                              y = Mean,
+                              colour = sos_training)
                               ) + 
                           geom_errorbar(aes(
-                              ymin=Mean-SE,
-                              ymax=Mean+SE),
-                              width=.1
+                              ymin = Lower,
+                              ymax = Upper),
+                              width = .1
                               ) +
                           geom_point(
                               size = 2
@@ -87,7 +114,7 @@ mean_plot <- ggplot(desc, aes(x=critical,
 inital_plot <- ggplot(plot_df,
                       aes(
                         x = interview,
-                        y = trans_det)
+                        y = detail)
                       ) +
                       geom_smooth(
                         aes(
@@ -109,18 +136,46 @@ inital_plot <- ggplot(plot_df,
                       ) +
                       scale_color_manual(values = c(
                         "#607466",
-                        "#E00078"))
+                        "#E00078")) +
+                      facet_wrap(
+                        ~ critical
+                      )
 
+delay_plot <- ggplot(plot_df,
+                      aes(
+                        x = interview,
+                        y = detail)
+) +
+  geom_smooth(
+    aes(
+      group = condition,
+      color = condition),
+    method=lm,
+    se = TRUE
+  ) +
+  labs(
+    y = "Disclosed details",
+    x = "Interview",
+    color = "Condition"
+  ) +
+  scale_x_continuous(
+    labels = c("1", "2", "3","4","5","6"),
+    breaks = 0:5
+  ) +
+  ylim(0, 5
+  ) +
+  facet_wrap(
+    ~ critical)
 
 # Hypothesis testing -----------------------------------------------------------
 
 ## Model created to assess variance attributed to random effects
 
-M0 <- lmer(trans_det 
+M0 <- lmer(detail 
           ~ 1
           + (1|id)                 #interviewer
-          + (1|mc_seq:interviewee) #interviewee nested in MC
-          + (1|mc_seq),
+          + (1|mc_sequence:interviewee) #interviewee nested in MC
+          + (1|mc_sequence),
           data=my_df,
           REML=TRUE)
 
@@ -133,13 +188,13 @@ performance::icc(M0, by_group = TRUE)
 
 ## Main effects
 
-simple_model <- lmer(trans_det
+simple_model <- lmer(detail
                     ~ sos_training 
                     + critical 
                     + interview
                     + (1|id)                  #interviewer
-                    + (1|mc_seq:interviewee), #interviewee nested in MC
-                    #+ (1|mc_seq), #removed to simplify model if applicable
+                    + (1|mc_sequence:interviewee) #interviewee nested in MC
+                    + (1|mc_sequence), #removed to simplify model if applicable
                     data=my_df,
                     REML=FALSE)
 
@@ -147,20 +202,39 @@ summary(simple_model)
 
 # Interaction effects
 
-interaction_model <- lmer(trans_det
+interaction_model <- lmer(detail
                      ~ sos_training 
                      + critical 
                      + interview
                      + sos_training*critical
                      + sos_training*interview
                      + (1|id)                  #interviewer
-                     + (1|mc_seq:interviewee), #interviewee nested in MC
-                     #+ (1|mc_seq), #removed to simplify model if applicable
+                     + (1|mc_sequence:interviewee) #interviewee nested in MC
+                     + (1|mc_sequence), #removed to simplify model if applicable
                      data=my_df,
                      REML=FALSE)
 
 summary(interaction_model)
 
+emmeans::emmeans(interaction_model, specs = ~ sos_training + critical)
+
 ## Compare model fit
 
 anova(simple_model, interaction_model, refit=FALSE) 
+
+# 3- way Interaction effects
+
+three_way_interaction_model <- lmer(detail
+                          ~ sos_training 
+                          + critical 
+                          + interview
+                          + sos_training*critical*interview
+                          + (1|id)                  #interviewer
+                          + (1|mc_sequence:interviewee) #interviewee nested in MC
+                          + (1|mc_sequence), #removed to simplify model if applicable
+                          data=my_df,
+                          REML=FALSE)
+
+summary(three_way_interaction_model)
+
+anova(interaction_model, three_way_interaction_model, refit=FALSE) 
