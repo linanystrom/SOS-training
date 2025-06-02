@@ -18,6 +18,8 @@ my_df <- read_csv("data/excell_long.csv")
 
 plot_df <- my_df
 
+test_df<-plot_df[complete.cases(plot_df),]
+
 
 ## Factor training & details (critical, noncritical)
 
@@ -32,7 +34,7 @@ plot_df$critical <- factor(plot_df$critical,
 
 ## Descriptive statistics - information disclosure
 
-desc <- plot_df %>% 
+desc <- plot_df[complete.cases(plot_df),] %>% 
   group_by(sos_training, critical) %>% 
   summarise(
     Mean = mean(detail, na.rm = TRUE),
@@ -46,7 +48,7 @@ desc <- plot_df %>%
 
 ## Descriptive statistics - Also grouping by interview
 
-desc_by_interview <- plot_df %>% 
+desc_by_interview <- plot_df[complete.cases(plot_df),] %>% 
   group_by(condition, interview, critical) %>% 
   summarise(
     Mean = mean(detail, na.rm = TRUE),
@@ -167,7 +169,9 @@ delay_plot <- ggplot(plot_df,
   facet_wrap(
     ~ critical)
 
+
 # Hypothesis testing -----------------------------------------------------------
+
 
 ## Model created to assess variance attributed to random effects
 
@@ -180,6 +184,7 @@ M0 <- lmer(detail
           REML=TRUE)
 
 summary(M0)
+
 
 ## Assessing variance associated with random effects, effects with ICC below 0.05 will be excluded from models below
 
@@ -200,6 +205,7 @@ simple_model <- lmer(detail
 
 summary(simple_model)
 
+
 # Interaction effects
 
 interaction_model <- lmer(detail
@@ -216,11 +222,17 @@ interaction_model <- lmer(detail
 
 summary(interaction_model)
 
-emmeans::emmeans(interaction_model, specs = ~ sos_training + critical)
+emmeans_int <- emmeans::emmeans(interaction_model, specs = ~ sos_training + critical)
+
+pairs(emmeans_int)
+
+eff_size(emmeans_int, sigma = sigma(interaction_model), edf = 627)
+
 
 ## Compare model fit
 
 anova(simple_model, interaction_model, refit=FALSE) 
+
 
 # 3- way Interaction effects
 

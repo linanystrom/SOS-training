@@ -6,7 +6,7 @@
 
 # Basic setup ------------------------------------------------------------------
 
-packages <- c("readr", "dplyr")
+packages <- c("readr", "dplyr", "readxl")
 
 lapply(packages, library, character.only = TRUE)
 
@@ -96,13 +96,22 @@ qualtrics_raw <- qualtrics_raw %>%
 excell_long <- read_csv("data/excell_long.csv")
 
 merge_data <- excell_long %>% 
-  select(c("id","condition", "interview","sos_training"))
-
-#### Remove duplicates
+  select(c("id","condition", "interview","sos_training")) 
 
 merge_data <- merge_data %>% distinct()
 
-qualtrics_raw <- merge(qualtrics_raw, merge_data, by = c("id", "interview"))
+merge_data <- merge_data %>% 
+  mutate(
+    interview = case_when(
+      interview == 0 ~ 1,
+      interview == 1 ~ 2,
+      interview == 2 ~ 3,
+      interview == 3 ~ 4,
+      interview == 4 ~ 5,
+      interview == 5 ~ 6)
+    )
+
+qualtrics_raw <- merge(qualtrics_raw, merge_data, by = c("id", "interview"), na.rm = TRUE)
 
 qualtrics_raw <- (type_convert(qualtrics_raw))
 
@@ -192,4 +201,5 @@ write.csv(
   "data/qualtrics_clean.csv",
   row.names = FALSE
 )
+
 

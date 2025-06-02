@@ -3,6 +3,7 @@
 # Interviewer's Experiences
 
 ################################################################################
+
 # Basic set up -----------------------------------------------------------------
 
 packages <- c("gtools", "readr", "tibble", "dplyr", "data.table", "tidyr",
@@ -10,34 +11,108 @@ packages <- c("gtools", "readr", "tibble", "dplyr", "data.table", "tidyr",
 
 lapply(packages, library, character.only = TRUE)
 
-interviewer_df <- read_csv() # Replace with real data
+# Wrangling --------------------------------------------------------------------
 
-interviewer_df$sos_training <- factor(interviewer_df$sos_training,
-                               levels = c(0, 1),
-                               labels = c("Basic","SoS"))
+interviewer_df <- read_csv("data/Qualtrics/TrainingStudy_postq.csv") %>%
+  slice(-1, -2)
 
-# Demographics -----------------------------------------------------------------
 
-## Age
+interviewer_df <- (type_convert(interviewer_df))
 
-interviewer_age_table <- interviewer_df %>% 
-  summarise(
-    Age_M = mean(interviewer_age, na.rm = TRUE),
-    Age_sd = sd(interviewer_age, na.rm = TRUE),
-    Age_Mdn = median(interviewer_age, na.rm = TRUE)
-  ) 
 
-## Gender
+## Correcting input error from participant #26
 
-### 1 = Male, 2 = Female, 3 = Non-Binary, 4 = Prefer not to say 
+interviewer_df <- interviewer_df %>%
+  mutate(
+  interview = ifelse(ResponseId == "R_1OoWgOnV4cVLJYl",
+                     2,
+                     interview),
+  interviewer_age = ifelse(ResponseId == "R_1OoWgOnV4cVLJYl",
+                           NA,
+                           interviewer_age),
+  interviewer_gender = ifelse(ResponseId == "R_1OoWgOnV4cVLJYl",
+                              NA,
+                              interviewer_gender)
+)
 
-interviewer_gender_table <- interviewer_df %>% 
-  group_by(interviewer_gender) %>% 
-  summarise(
-    n = n()
-  )
+
+interviewer_df <- interviewer_df %>%
+  group_by(interviewer) %>% 
+  fill(training, .direction = "downup") %>%
+  ungroup
+
+
+interviewer_df<- interviewer_df %>%
+  mutate(interview = recode(interview,
+                              '1'='0',
+                              '2'='1',
+                              '3'='2',
+                              '4'='3',
+                              '5'='4',
+                              '6'='5'))
+
+
+interviewer_df <- interviewer_df %>% 
+  mutate(
+    interviewee = paste(as.character(interviewer),
+                        as.character(interview), sep = "_"))
+
+
+my_df <- read_csv("data/excell_long.csv") 
+
+
+merge_data <- my_df  %>% 
+  select(c("interviewee", "sos_training")) 
+
+
+merge_data <- unique(merge_data)
+
+
+merge_data <- na.omit(merge_data)
+
+
+interviewer_df <- merge(interviewer_df, merge_data,
+                        by = c("interviewee"))
+
+
+interviewer_df <- interviewer_df %>% 
+  mutate(
+    planning_int = case_when(
+      planning_int == 1 ~ 1,
+      planning_int == 2 ~ 2,
+      planning_int == 3 ~ 3,
+      planning_int == 4 ~ 4,
+      planning_int == 5 ~ 5,
+      planning_int == 6 ~ 6,
+      planning_int == "Extremely well" ~ 7))
+
+
+interviewer_df <- interviewer_df %>% 
+  mutate(
+    conducting_int = case_when(
+      conducting_int == 1 ~ 1,
+      conducting_int == 2 ~ 2,
+      conducting_int == 3 ~ 3,
+      conducting_int == 4 ~ 4,
+      conducting_int == 5 ~ 5,
+      conducting_int == 6 ~ 6,
+      conducting_int == "Extremely well" ~ 7))
+
+
+interviewer_df <- interviewer_df %>% 
+  mutate(
+    new_info_interviewer = case_when(
+      new_info_interviewer == "Nothing at all" ~ 1,
+      new_info_interviewer == 2 ~ 2,
+      new_info_interviewer == 3 ~ 3,
+      new_info_interviewer == 4 ~ 4,
+      new_info_interviewer == 5 ~ 5,
+      new_info_interviewer == 6 ~ 6,
+      new_info_interviewer == "A substantial amount" ~ 7))
+      
 
 # Self assessment of Planning --------------------------------------------------
+
 
 planning_desc <- interviewer_df %>% 
   group_by(sos_training) %>% 
@@ -56,8 +131,8 @@ planning_desc <- interviewer_df %>%
 planning_simple_model <- lmer(planning_int
                      ~ sos_training 
                      + interview
-                     + (1|id) #interviewer
-                     + (1|mc_seq)
+                     + (1|interviewer), #interviewer
+                     + (1|mc)
                      + (1|interviewee),
                      data = interviewer_df,
                      REML = FALSE)
@@ -71,8 +146,8 @@ planning_interaction_model <- lmer(planning_int
                           ~ sos_training
                           + interview
                           + sos_training*interview
-                          + (1|id) #interviewer
-                          + (1|mc_seq)
+                          + (1|interviewer) #interviewer
+                          + (1|mc)
                           + (1|interviewee),
                           data = interviewer_df,
                           REML = FALSE)
@@ -83,6 +158,7 @@ summary(planning_interaction_model)
 ## Compare model fit
 
 anova(planning_simple_model, planning_interaction_model, refit=FALSE) 
+
 
 # Self-assessment of Performance -----------------------------------------------
 
@@ -102,9 +178,8 @@ conducting_desc <- interviewer_df %>%
 
 conducting_simple_model <- lmer(conducting_int
                               ~ sos_training 
-                              + interview
-                              + (1|id) #interviewer
-                              + (1|mc_seq:interviewee), #interviewee nested in MC
+                              + as.numeric(interview)
+                              + (1|interviewer), #interviewer
                               data = interviewer_df,
                               REML = FALSE)
 
@@ -115,18 +190,19 @@ summary(conducting_simple_model)
 
 conducting_interaction_model <- lmer(conducting_int
                                    ~ sos_training
-                                   + interview
-                                   + sos_training*interview
-                                   + (1|id) #interviewer
-                                   + (1|mc_seq:interviewee), #interviewee nested in MC
+                                   + as.numeric(interview)
+                                   + sos_training*as.numeric(interview)
+                                   + (1|interviewer), #interviewer
                                    data = interviewer_df,
                                    REML = FALSE)
 
 summary(conducting_interaction_model)
 
+
 ## Compare model fit
 
 anova(conducting_simple_model, conducting_interaction_model, refit=FALSE) 
+
 
 # Self-assessment of new information yield -------------------------------------
 
@@ -146,9 +222,8 @@ new_info_interviewer_desc <- interviewer_df %>%
 
 new_info_interviewer_simple_model <- lmer(new_info_interviewer
                                 ~ sos_training 
-                                + interview
-                                + (1|id) #interviewer
-                                + (1|mc_seq:interviewee), #interviewee nested in MC
+                                + as.numeric(interview)
+                                + (1|interviewer), #interviewer
                                 data = interviewer_df,
                                 REML = FALSE)
 
@@ -159,14 +234,14 @@ summary(new_info_interviewer_simple_model)
 
 new_info_interviewer_interaction_model <- lmer(new_info_interviewer
                                      ~ sos_training
-                                     + interview
-                                     + sos_training*interview
-                                     + (1|id) #interviewer
-                                     + (1|mc_seq:interviewee), #interviewee nested in MC
+                                     + as.numeric(interview)
+                                     + sos_training*as.numeric(interview)
+                                     + (1|interviewer), #interviewer
                                      data = interviewer_df,
                                      REML = FALSE)
 
 summary(new_info_interviewer_interaction_model)
+
 
 ## Compare model fit
 

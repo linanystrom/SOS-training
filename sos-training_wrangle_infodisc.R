@@ -3,6 +3,9 @@
 # Data preparation - Information disclosure
 
 ################################################################################
+
+# Begin by running this script
+
 # Basic setup ------------------------------------------------------------------
 
 packages <- c("readr", "dplyr", "readxl", "tidyr")
@@ -11,7 +14,7 @@ lapply(packages, library, character.only = TRUE)
 
 # Load data --------------------------------------------------------------------
 
-excell_raw <- read_excel("data/coding_solved.xlsx") # Replace with real data
+excell_raw <- read_excel("data/coding_solved.xlsx") 
 
 # ------------------------------------------------------------------------------
 
@@ -45,7 +48,19 @@ excell_long <- excell_raw  %>%
              "int4_st3",
              "int4_st4",
              "int4_st5",
-             "int4_st6"),
+             "int4_st6",
+             "int5_st1",
+             "int5_st2",
+             "int5_st3",
+             "int5_st4",
+             "int5_st5",
+             "int5_st6",
+             "int6_st1",
+             "int6_st2",
+             "int6_st3",
+             "int6_st4",
+             "int6_st5",
+             "int6_st6"),
     names_to = "stage",
     values_to = "detail")
 
@@ -57,7 +72,9 @@ excell_long <- excell_long %>%
       startsWith(stage,"int1") ~ 0,
       startsWith(stage,"int2") ~ 1,
       startsWith(stage,"int3") ~ 2,
-      startsWith(stage,"int4") ~ 3
+      startsWith(stage,"int4") ~ 3,
+      startsWith(stage,"int5") ~ 4,
+      startsWith(stage,"int6") ~ 5
       
     ),
     activity = case_when(
@@ -94,7 +111,9 @@ excell_long <- excell_long %>%
     interview == 0 ~ 0,
     interview == 1 ~ 0,
     interview == 2 ~ 0,
-    interview == 3 ~ 0
+    interview == 3 ~ 0,
+    interview == 4 ~ 0,
+    interview == 5 ~ 0
   ),
   ifelse(condition == "SoS", case_when(
     interview == 0 ~ 1,

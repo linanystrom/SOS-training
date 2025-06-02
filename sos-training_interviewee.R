@@ -3,6 +3,7 @@
 # Interviewee's Experiences
 
 ################################################################################
+
 # Basic set up -----------------------------------------------------------------
 
 packages <- c("gtools", "readr", "tibble", "dplyr", "data.table", "tidyr",
@@ -12,31 +13,10 @@ lapply(packages, library, character.only = TRUE)
 
 interviewee_df <- read_csv("data/qualtrics_clean.csv") 
 
-qualtrics_clean$sos_training <- factor(qualtrics_clean$sos_training,
+interviewee_df$sos_training <- factor(interviewee_df$sos_training,
                                       levels = c(0, 1),
                                       labels = c("Basic","SoS")
                                       )
-
-# Demographics -----------------------------------------------------------------
-
-## Age
-
-interviewee_age_table <- interviewee_df %>% 
-  summarise(
-    Age_M = mean(age, na.rm = TRUE),
-    Age_SD = sd(age, na.rm = TRUE),
-    Age_Mdn = median(age, na.rm = TRUE)
-  ) 
-
-## Gender
-
-### 1 = Male, 2 = Female, 3 = Non-Binary, 4 = Prefer not to say 
-
-interviewee_gender_table <- interviewee_df %>% 
-  group_by(gender) %>% 
-  summarise(
-    n = n()) %>%
-      mutate(rel_freq = paste0(round(100 * n/sum(n), 0), "%"))
 
 # Pre-interview questionnaire --------------------------------------------------
 
@@ -61,7 +41,7 @@ confidence_test <- t.test(
 ## Motivation
 
 motivation_desc <- interviewee_df %>% 
-  #group_by(sos_training) %>% 
+  group_by(sos_training) %>% 
   summarise(
     Mean = mean(motivation, na.rm = TRUE),
     SD = sd(motivation, na.rm = TRUE),
@@ -132,7 +112,7 @@ knowledge_desc <- interviewee_df %>%
 
 knowledge_simple_model <- lmer(knowledge_before
                                  ~ sos_training
-                                 + interview
+                                 +  interview
                                  + (1|id) #interviewer
                                  + (1|mc),
                                  data = interviewee_df,
@@ -170,11 +150,12 @@ yield_desc <- interviewee_df %>%
 
 ### Main effects
 
+
 yield_simple_model <- lmer(new_info
                                ~ sos_training
                                + interview
                                + (1|id) #interviewer
-                               + (1|mc_seq),
+                               + (1|mc),
                                data = interviewee_df,
                                REML = FALSE)
 
@@ -187,7 +168,7 @@ yield_int_model <- lmer(new_info
                             + interview
                             + sos_training*interview
                             + (1|id) #interviewer
-                            + (1|mc_seq),
+                            + (1|mc),
                             data = interviewee_df,
                             REML = FALSE)
 
@@ -219,27 +200,8 @@ change_strat_main_model <- glmer(as.factor(change_strategy)
                                  control = glmerControl(optimizer = "bobyqa")
                                 )
 
+
 summary(change_strat_main_model)
-
-
-### Interaction effects
-
-change_strat_int_model <- glmer(change_strategy
-                                ~ sos_training
-                                + interview
-                                + sos_training*interview
-                                + (1|id) #interviewer
-                                + (1|mc_seq),
-                                data = interviewee_df,
-                                family = binomial,
-                                control = glmerControl(optimizer = "bobyqa")
-)
-
-summary(change_strat_int_model)
-
-### Compare model fit
-
-anova(change_strat_main_model, change_strat_int_model, refit=FALSE) 
 
 ### Chi square approach
 
@@ -336,7 +298,7 @@ anova(interviewer_simple_model, interviewer_int_model, refit=FALSE)
 ## Engagement with clips
 
 engagement_desc <- interviewee_df %>% 
-  #group_by(sos_training) %>% 
+  group_by(sos_training) %>% 
   summarise(
     Mean = mean(engagement, na.rm = TRUE),
     SD = sd(engagement, na.rm = TRUE),
