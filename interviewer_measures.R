@@ -273,6 +273,10 @@ simple_model_crit <- lmer(critical_sum
 summary(simple_model_crit)
 
 
-
+write.csv(
+  interviewer_merged,
+  "data/interviewer_measures_clean.csv",
+  row.names = FALSE
+)
 
 

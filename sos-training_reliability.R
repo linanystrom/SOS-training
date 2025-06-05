@@ -10,7 +10,7 @@ packages <- c("psych", "lavaan", "semTools")
 
 lapply(packages, library, character.only = TRUE)
 
-sos_reliability <- read_csv("./qualtrics_clean.csv") #Load data here
+sos_reliability <- read_csv("./data/qualtrics_clean.csv") #Load data here
 
 # Reliability analysis - Self assessment ---------------------------------------
 
@@ -20,11 +20,11 @@ self_assessment_corr = sos_reliability[c(
   "interview_statements_3",
   "interview_statements_4")]
 
-describe(self_assessment_corr_)
+describe(self_assessment_corr)
 
 lowerCor(self_assessment_corr)
 
-self_corr_T1 <- omega(self_assessment_corr)
+self_corr <- omega(self_assessment_corr)
 
 summary(self_corr)
 
@@ -114,7 +114,7 @@ qual_interviewer_uni_model <-
 
 qual_interviewer =~ interviewer_adj_1
 + interviewer_adj_2_R
-+ interviewer_adj_3_3
++ interviewer_adj_3
 + interviewer_adj_4
 + interviewer_adj_5
 + interviewer_adj_6_R
