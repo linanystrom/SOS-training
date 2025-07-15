@@ -65,12 +65,17 @@ FR_data <- table(interviewer_merged$sos_training, interviewer_merged$Free_recall
 chisq.test(interviewer_merged$sos_training, interviewer_merged$Free_recall,
            correct=FALSE)
 
+
+FR_chisq <- prop.test(x = FR_data,
+                          n = rowSums(FR_data),
+                          correct = FALSE)
+
 #GP
 
 t.test(Guilt_presumption ~ sos_training, data = interviewer_merged)
 
 desc_gp <- interviewer_merged %>% 
-  group_by(sos_training) %>% 
+  #group_by(sos_training) %>% 
   summarise(
     Mean = mean(Guilt_presumption, na.rm = TRUE),
     SD = sd(Guilt_presumption, na.rm = TRUE),
@@ -315,7 +320,7 @@ corr_plot <- corrplot(cormat_details,
 
 ## Main effects
 
-simple_model <- lmer(overall_sum
+tactic_simple_model <- lmer(overall_sum
                      ~ Introduction
                      + Free_recall
                      + Guilt_presumption
@@ -330,7 +335,7 @@ simple_model <- lmer(overall_sum
                      data=detail_merged,
                      REML=FALSE)
 
-summary(simple_model)
+summary(tactic_simple_model)
 
 # Predicting critical details --------------------------------------------------
 
@@ -375,5 +380,8 @@ write.csv(
   "data/interviewer_measures_clean.csv",
   row.names = FALSE
 )
+
+
+
 
 

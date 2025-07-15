@@ -6,12 +6,27 @@
 
 # Basic setup ------------------------------------------------------------------
 
-packages <- c("readxl", "lme4", "boot")
+packages <- c("readxl", "lme4", "boot", "performance")
 
 lapply(packages, library, character.only = TRUE)
 
-source("./ICC/icc_func.R")
 set.seed(666)
+
+ICC_func <- function(x) {
+  
+  model <- x
+  model_vcov <- summary(model)$varcor %>%  as.data.frame()
+  model_icc <- model_vcov$vcov/sum(model_vcov$vcov)
+  return(model_icc)
+}
+
+icc_boot <- function(x) {
+  
+  icc_test <- icc(x, by_group = TRUE)
+  
+  return(icc_test$ICC[[1]])
+  
+}
 
 # Load data --------------------------------------------------------------------
 

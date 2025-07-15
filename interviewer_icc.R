@@ -4,12 +4,28 @@
 
 ################################################################################
 
-packages <- c("tidyverse", "readxl", "lme4", "boot", "irrCAC")
+packages <- c("tidyverse", "readxl", "lme4", "boot", "irrCAC", "dplyr", "performance")
 
 lapply(packages, library, character.only = TRUE)
 
-source("icc_func.r")
 set.seed(666)
+
+
+ICC_func <- function(x) {
+  model <- x
+  model_vcov <- summary(model)$varcor %>%  as.data.frame()
+  model_icc <- model_vcov$vcov/sum(model_vcov$vcov)
+  return(model_icc)
+}
+
+icc_boot <- function(x) {
+  
+  icc_test <- icc(x, by_group = TRUE)
+  
+  return(icc_test$ICC[[1]])
+  
+}
+
 
 ## Load data -------------------------------------------------------------------
 
@@ -36,7 +52,7 @@ BB <- read_xlsx("./data/ICC/BB.xlsx") %>%
 LN_intro <- LN %>% 
   filter(!is.na(Introduction))
 
-LN_intro <- LN_intro %>% select(ID, Interview_nr, Introduction) %>% mutate(
+LN_intro <- LN_intro %>% dplyr::select(ID, Interview_nr, Introduction) %>% mutate(
   coded_by = "LN",
   intro_id = paste(ID, Interview_nr, sep = "_")
 )
@@ -44,7 +60,7 @@ LN_intro <- LN_intro %>% select(ID, Interview_nr, Introduction) %>% mutate(
 TL_intro <- TL %>% 
   filter(!is.na(Introduction))
 
-TL_intro <- TL_intro %>% select(ID, Interview_nr, Introduction) %>% mutate(
+TL_intro <- TL_intro %>% dplyr::select(ID, Interview_nr, Introduction) %>% mutate(
   coded_by = "TL",
   intro_id = paste(ID, Interview_nr, sep = "_")
 )
@@ -52,27 +68,27 @@ TL_intro <- TL_intro %>% select(ID, Interview_nr, Introduction) %>% mutate(
 EN_intro <- EN %>% 
   filter(!is.na(Introduction))
 
-EN_intro <- EN_intro %>% select(ID, Interview_nr, Introduction) %>% mutate(
+EN_intro <- EN_intro %>% dplyr::select(ID, Interview_nr, Introduction) %>% mutate(
   coded_by = "EN",
   intro_id = paste(ID, Interview_nr, sep = "_")
 ) 
 
-AK_intro <- AK %>% select(ID, Interview_nr, Introduction) %>% mutate(
+AK_intro <- AK %>% dplyr::select(ID, Interview_nr, Introduction) %>% mutate(
   coded_by = "AK",
   intro_id = paste(ID, Interview_nr, sep = "_")
 )
 
-AT_intro <- AT %>% select(ID, Interview_nr, Introduction) %>% mutate(
+AT_intro <- AT %>% dplyr::select(ID, Interview_nr, Introduction) %>% mutate(
   coded_by = "AT",
   intro_id = paste(ID, Interview_nr, sep = "_")
 )
 
-GS_intro <- GS %>% select(ID, Interview_nr, Introduction) %>% mutate(
+GS_intro <- GS %>% dplyr::select(ID, Interview_nr, Introduction) %>% mutate(
   coded_by = "GS",
   intro_id = paste(ID, Interview_nr, sep = "_")
 )
 
-BB_intro <- BB %>% select(ID, Interview_nr, Introduction) %>% mutate(
+BB_intro <- BB %>% dplyr::select(ID, Interview_nr, Introduction) %>% mutate(
   coded_by = "BB",
   intro_id = paste(ID, Interview_nr, sep = "_")
 )
@@ -99,7 +115,7 @@ intro_ci_icc <- boot.ci(intro_boot_icc, index = 1, type = "perc")
 # Free Recall ------------------------------------------------------------------
 
 LN_FR <- LN %>% 
-  filter(!is.na(Introduction)) %>% select(ID,
+  filter(!is.na(Introduction)) %>% dplyr::select(ID,
                                           Interview_nr,
                                           Free_recall) %>% mutate(
     coded_by = "LN",
@@ -107,7 +123,7 @@ LN_FR <- LN %>%
   )
 
 TL_FR <- TL %>% 
-  filter(!is.na(Introduction)) %>% select(ID,
+  filter(!is.na(Introduction)) %>% dplyr::select(ID,
                                           Interview_nr,
                                           Free_recall) %>% mutate(
     coded_by = "TL",
@@ -115,35 +131,35 @@ TL_FR <- TL %>%
   )
 
 EN_FR <- EN %>% 
-  filter(!is.na(Introduction)) %>% select(ID,
+  filter(!is.na(Introduction)) %>% dplyr::select(ID,
                                           Interview_nr,
                                           Free_recall) %>% mutate(
     coded_by = "EN",
     intro_id = paste(ID, Interview_nr, sep = "_")
   )
 
-AK_FR <- AK %>% select(ID,
+AK_FR <- AK %>% dplyr::select(ID,
                        Interview_nr,
                        Free_recall) %>% mutate(
   coded_by = "AK",
   intro_id = paste(ID, Interview_nr, sep = "_")
 )
 
-AT_FR <- AT %>% select(ID,
+AT_FR <- AT %>% dplyr::select(ID,
                        Interview_nr,
                        Free_recall) %>% mutate(
   coded_by = "AT",
   intro_id = paste(ID, Interview_nr, sep = "_")
 )
 
-GS_FR <- GS %>% select(ID,
+GS_FR <- GS %>% dplyr::select(ID,
                        Interview_nr,
                        Free_recall) %>% mutate(
   coded_by = "GS",
   intro_id = paste(ID, Interview_nr, sep = "_")
 )
 
-BB_FR <- BB %>% select(ID,
+BB_FR <- BB %>% dplyr::select(ID,
                        Interview_nr,
                        Free_recall) %>% mutate(
   coded_by = "BB",
@@ -159,7 +175,7 @@ coded_stages_FR <- bind_rows(LN_FR,
                              BB_FR)
 
 FR_wide <- coded_stages_FR %>%
-  pivot_wider(names_from = coded_by, values_from = Free_recall) %>% select(
+  pivot_wider(names_from = coded_by, values_from = Free_recall) %>% dplyr::select(
     LN, TL, EN, AK, AT, GS, BB
   )
 
@@ -168,7 +184,7 @@ gwet.ac1.raw(FR_wide)
 # Guilt presumption ------------------------------------------------------------
 
 LN_GS <- LN %>% 
-  filter(!is.na(Guilt_presumption)) %>% select(ID,
+  filter(!is.na(Guilt_presumption)) %>% dplyr::select(ID,
                                                Interview_nr,
                                                Guilt_presumption) %>% mutate(
                                             coded_by = "LN",
@@ -178,7 +194,7 @@ LN_GS <- LN %>%
                                                )
 
 TL_GS <- TL %>% 
-  filter(!is.na(Guilt_presumption)) %>% select(ID,
+  filter(!is.na(Guilt_presumption)) %>% dplyr::select(ID,
                                           Interview_nr,
                                           Guilt_presumption) %>% mutate(
                                             coded_by = "TL",
@@ -188,7 +204,7 @@ TL_GS <- TL %>%
                                           )
 
 EN_GS <- EN %>% 
-  filter(!is.na(Guilt_presumption)) %>% select(ID,
+  filter(!is.na(Guilt_presumption)) %>% dplyr::select(ID,
                                           Interview_nr,
                                           Guilt_presumption) %>% mutate(
                                             coded_by = "EN",
@@ -217,7 +233,7 @@ GS_ci_icc <- boot.ci(GS_boot_icc, index = 1, type = "perc")
 # Funnel Structure -------------------------------------------------------------
 
 LN_FS <- LN %>% 
-  filter(!is.na(Funnel_structure)) %>% select(ID,
+  filter(!is.na(Funnel_structure)) %>% dplyr::select(ID,
                                                Interview_nr,
                                                Funnel_structure) %>% mutate(
                                                  coded_by = "LN",
@@ -227,7 +243,7 @@ LN_FS <- LN %>%
                                                )
 
 TL_FS <- TL %>% 
-  filter(!is.na(Funnel_structure)) %>% select(ID,
+  filter(!is.na(Funnel_structure)) %>% dplyr::select(ID,
                                                Interview_nr,
                                                Funnel_structure) %>% mutate(
                                                  coded_by = "TL",
@@ -237,7 +253,7 @@ TL_FS <- TL %>%
                                                )
 
 EN_FS <- EN %>% 
-  filter(!is.na(Funnel_structure)) %>% select(ID,
+  filter(!is.na(Funnel_structure)) %>% dplyr::select(ID,
                                                Interview_nr,
                                                Funnel_structure) %>% mutate(
                                                  coded_by = "EN",
@@ -266,7 +282,7 @@ FS_ci_icc <- boot.ci(FS_boot_icc, index = 1, type = "perc")
 # Challenging inconsistencies --------------------------------------------------
 
 LN_CI <- LN %>% 
-  filter(!is.na(Challenge_inconsistencies)) %>% select(ID,
+  filter(!is.na(Challenge_inconsistencies)) %>% dplyr::select(ID,
                                           Interview_nr,
                                           Challenge_inconsistencies) %>% mutate(
                                             coded_by = "LN",
@@ -274,7 +290,7 @@ LN_CI <- LN %>%
                                           )
 
 TL_CI <- TL %>% 
-  filter(!is.na(Challenge_inconsistencies)) %>% select(ID,
+  filter(!is.na(Challenge_inconsistencies)) %>% dplyr::select(ID,
                                           Interview_nr,
                                           Challenge_inconsistencies) %>% mutate(
                                             coded_by = "TL",
@@ -282,35 +298,35 @@ TL_CI <- TL %>%
                                           )
 
 EN_CI <- EN %>% 
-  filter(!is.na(Challenge_inconsistencies)) %>% select(ID,
+  filter(!is.na(Challenge_inconsistencies)) %>% dplyr::select(ID,
                                           Interview_nr,
                                           Challenge_inconsistencies) %>% mutate(
                                             coded_by = "EN",
                                             intro_id = paste(ID, Interview_nr, sep = "_")
                                           )
 
-AK_CI <- AK %>% select(ID,
+AK_CI <- AK %>% dplyr::select(ID,
                        Interview_nr,
                        Challenge_inconsistencies) %>% mutate(
                          coded_by = "AK",
                          intro_id = paste(ID, Interview_nr, sep = "_")
                        )
 
-AT_CI <- AT %>% select(ID,
+AT_CI <- AT %>% dplyr::select(ID,
                        Interview_nr,
                        Challenge_inconsistencies) %>% mutate(
                          coded_by = "AT",
                          intro_id = paste(ID, Interview_nr, sep = "_")
                        )
 
-GS_CI <- GS %>% select(ID,
+GS_CI <- GS %>% dplyr::select(ID,
                        Interview_nr,
                        Challenge_inconsistencies) %>% mutate(
                          coded_by = "GS",
                          intro_id = paste(ID, Interview_nr, sep = "_")
                        )
 
-BB_CI <- BB %>% select(ID,
+BB_CI <- BB %>% dplyr::select(ID,
                        Interview_nr,
                        Challenge_inconsistencies) %>% mutate(
                          coded_by = "BB",
@@ -340,7 +356,7 @@ CI_ci_icc <- boot.ci(CI_boot_icc, index = 1, type = "perc")
 
 
 LN_RE <- LN %>% 
-  filter(!is.na(Request_explanation)) %>% select(ID,
+  filter(!is.na(Request_explanation)) %>% dplyr::select(ID,
                                                  Interview_nr,
                                                  Request_explanation) %>% mutate(
                                                          coded_by = "LN",
@@ -348,7 +364,7 @@ LN_RE <- LN %>%
                                                        )
 
 TL_RE <- TL %>% 
-  filter(!is.na(Request_explanation)) %>% select(ID,
+  filter(!is.na(Request_explanation)) %>% dplyr::select(ID,
                                                  Interview_nr,
                                                  Request_explanation) %>% mutate(
                                                          coded_by = "TL",
@@ -356,35 +372,35 @@ TL_RE <- TL %>%
                                                        )
 
 EN_RE <- EN %>% 
-  filter(!is.na(Request_explanation)) %>% select(ID,
+  filter(!is.na(Request_explanation)) %>% dplyr::select(ID,
                                                  Interview_nr,
                                                  Request_explanation) %>% mutate(
                                                          coded_by = "EN",
                                                          intro_id = paste(ID, Interview_nr, sep = "_")
                                                        )
 
-AK_RE <- AK %>% select(ID,
+AK_RE <- AK %>% dplyr::select(ID,
                        Interview_nr,
                        Request_explanation) %>% mutate(
                          coded_by = "AK",
                          intro_id = paste(ID, Interview_nr, sep = "_")
                        )
 
-AT_RE <- AT %>% select(ID,
+AT_RE <- AT %>% dplyr::select(ID,
                        Interview_nr,
                        Request_explanation) %>% mutate(
                          coded_by = "AT",
                          intro_id = paste(ID, Interview_nr, sep = "_")
                        )
 
-GS_RE <- GS %>% select(ID,
+GS_RE <- GS %>% dplyr::select(ID,
                        Interview_nr,
                        Request_explanation) %>% mutate(
                          coded_by = "GS",
                          intro_id = paste(ID, Interview_nr, sep = "_")
                        )
 
-BB_RE <- BB %>% select(ID,
+BB_RE <- BB %>% dplyr::select(ID,
                        Interview_nr,
                        Request_explanation) %>% mutate(
                          coded_by = "BB",
@@ -414,7 +430,7 @@ RE_ci_icc <- boot.ci(RE_boot_icc, index = 1, type = "perc")
 # Reinforce truth --------------------------------------------------------------
 
 LN_RT <- LN %>% 
-  filter(!is.na(Reinforce_truth)) %>% select(ID,
+  filter(!is.na(Reinforce_truth)) %>% dplyr::select(ID,
                                              Interview_nr,
                                              Reinforce_truth) %>% mutate(
                                                    coded_by = "LN",
@@ -422,7 +438,7 @@ LN_RT <- LN %>%
                                                  )
 
 TL_RT <- TL %>% 
-  filter(!is.na(Reinforce_truth)) %>% select(ID,
+  filter(!is.na(Reinforce_truth)) %>% dplyr::select(ID,
                                              Interview_nr,
                                              Reinforce_truth) %>% mutate(
                                                    coded_by = "TL",
@@ -430,35 +446,35 @@ TL_RT <- TL %>%
                                                  )
 
 EN_RT <- EN %>% 
-  filter(!is.na(Reinforce_truth)) %>% select(ID,
+  filter(!is.na(Reinforce_truth)) %>% dplyr::select(ID,
                                              Interview_nr,
                                              Reinforce_truth) %>% mutate(
                                                    coded_by = "EN",
                                                    intro_id = paste(ID, Interview_nr, sep = "_")
                                                  )
 
-AK_RT <- AK %>% select(ID,
+AK_RT <- AK %>% dplyr::select(ID,
                        Interview_nr,
                        Reinforce_truth) %>% mutate(
                          coded_by = "AK",
                          intro_id = paste(ID, Interview_nr, sep = "_")
                        )
 
-AT_RT <- AT %>% select(ID,
+AT_RT <- AT %>% dplyr::select(ID,
                        Interview_nr,
                        Reinforce_truth) %>% mutate(
                          coded_by = "AT",
                          intro_id = paste(ID, Interview_nr, sep = "_")
                        )
 
-GS_RT <- GS %>% select(ID,
+GS_RT <- GS %>% dplyr::select(ID,
                        Interview_nr,
                        Reinforce_truth) %>% mutate(
                          coded_by = "GS",
                          intro_id = paste(ID, Interview_nr, sep = "_")
                        )
 
-BB_RT <- BB %>% select(ID,
+BB_RT <- BB %>% dplyr::select(ID,
                        Interview_nr,
                        Reinforce_truth) %>% mutate(
                          coded_by = "BB",
@@ -489,7 +505,7 @@ RT_ci_icc <- boot.ci(RT_boot_icc, index = 1, type = "perc")
 # Supportive transitions -------------------------------------------------------
 
 LN_ST <- LN %>% 
-  filter(!is.na(`Supportive transistions`)) %>% select(ID,
+  filter(!is.na(`Supportive transistions`)) %>% dplyr::select(ID,
                                               Interview_nr,
                                               `Supportive transistions`) %>% mutate(
                                                 coded_by = "LN",
@@ -499,7 +515,7 @@ LN_ST <- LN %>%
                                               )
 
 TL_ST <- TL %>% 
-  filter(!is.na(`Supportive transistions`)) %>% select(ID,
+  filter(!is.na(`Supportive transistions`)) %>% dplyr::select(ID,
                                               Interview_nr,
                                               `Supportive transistions`) %>% mutate(
                                                 coded_by = "TL",
@@ -509,7 +525,7 @@ TL_ST <- TL %>%
                                               )
 
 EN_ST <- EN %>% 
-  filter(!is.na(`Supportive transistions`)) %>% select(ID,
+  filter(!is.na(`Supportive transistions`)) %>% dplyr::select(ID,
                                               Interview_nr,
                                               `Supportive transistions`) %>% mutate(
                                                 coded_by = "EN",
@@ -537,7 +553,7 @@ ST_ci_icc <- boot.ci(ST_boot_icc, index = 1, type = "perc")
 # Leading questions ------------------------------------------------------------
 
 LN_LQ <- LN %>% 
-  filter(!is.na(Leading_questions)) %>% select(ID,
+  filter(!is.na(Leading_questions)) %>% dplyr::select(ID,
                                                Interview_nr,
                                                Leading_questions) %>% mutate(
                                                          coded_by = "LN",
@@ -547,7 +563,7 @@ LN_LQ <- LN %>%
                                                        )
 
 TL_LQ <- TL %>% 
-  filter(!is.na(Leading_questions)) %>% select(ID,
+  filter(!is.na(Leading_questions)) %>% dplyr::select(ID,
                                                Interview_nr,
                                                Leading_questions) %>% mutate(
                                                          coded_by = "TL",
@@ -557,7 +573,7 @@ TL_LQ <- TL %>%
                                                        )
 
 EN_LQ <- EN %>% 
-  filter(!is.na(Leading_questions)) %>% select(ID,
+  filter(!is.na(Leading_questions)) %>% dplyr::select(ID,
                                                Interview_nr,
                                                Leading_questions) %>% mutate(
                                                          coded_by = "EN",

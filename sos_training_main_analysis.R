@@ -59,32 +59,7 @@ desc_by_interview <- plot_df[complete.cases(plot_df),] %>%
     Lower = Mean - (1.96*SE)
   )
 
-mean_plot_2 <- ggplot(desc_by_interview, aes(x = interview,
-                              y = Mean,
-                              colour = condition,
-                              group = condition)
-) + 
-  geom_errorbar(aes(
-    ymin = Lower,
-    ymax = Upper),
-    width = .1,
-    position = position_dodge(width = .2)
-  ) +
-  geom_point(
-    size = 2,
-    position = position_dodge(width = .2)
-  ) +
-  geom_line(
-    
-  ) +
-  labs(
-    y = "Disclosed details",
-    x = "Detail type",
-    color = "Condition"
-  ) +
-  facet_wrap(
-    ~ critical
-  )
+
 
 
 ## Means plot - Information disclosure
@@ -113,7 +88,9 @@ mean_plot <- ggplot(desc, aes(x = critical,
 
 ## Plotting information disclosure over the 6 interviews for each condition
 
-inital_plot <- ggplot(plot_df,
+plot2_df <- plot_df %>% filter(interview < 4)
+
+inital_plot <- ggplot(plot2_df,
                       aes(
                         x = interview,
                         y = detail)
@@ -131,8 +108,8 @@ inital_plot <- ggplot(plot_df,
                         color = "Training"
                       ) +
                       scale_x_continuous(
-                        labels = c("1", "2", "3","4","5","6"),
-                        breaks = 0:5
+                        labels = c("1", "2", "3","4"),
+                        breaks = 0:3
                       ) +
                       ylim(0, 5
                       ) +
@@ -231,7 +208,7 @@ emmeans::eff_size(emmeans_int, sigma = sigma(interaction_model), edf = 627)
 
 ## Compare model fit
 
-anova(simple_model, interaction_model, refit=FALSE) 
+model_comp <- anova(simple_model, interaction_model, refit=FALSE) 
 
 
 # 3- way Interaction effects

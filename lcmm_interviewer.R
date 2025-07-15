@@ -151,11 +151,46 @@ class_change = data.frame(class_change_df$Predicted_class_M3,
 change_data = table(class_change_df$Predicted_class_M3,
                     class_change_df$change_strategy)
 
-change_data_prop <- prop.table(table(class_change_df$Predicted_class_M3,
-                                     class_change_df$change_strategy),
-                                     margin=1)*100
+change_data_prop <- class_change_df %>%
+  drop_na (change_strategy) %>% 
+  group_by(Predicted_class_M3, change_strategy) %>%
+  summarise(
+    n = n()) %>%
+  mutate(rel_freq = paste0(round(100 * n/sum(n), 0), "%")
+  )
 
 chisq_object <- chisq.test(change_data)
 
 chisq_object$stdres
 
+chisq_prop <- prop.test(x = change_data,
+                      n = rowSums(change_data),
+                      correct = FALSE)
+
+## HERE
+
+## Load info disc sum + critical sum - match with ID and then table
+
+info_df <- read_csv("data/excell_long.csv")
+
+info_df$critical <- factor(info_df$critical,
+                           levels = c(0, 1),
+                           labels = c("Non-critical", "Critical"))
+
+class_infodisc_df <- merge(info_df,
+                         interviewer_df,
+                         by = c("interviewee"),
+                         na.rm = FALSE)
+
+
+
+desc_class_info <- class_infodisc_df [complete.cases(class_infodisc_df ),] %>% 
+  group_by(Predicted_class_M3, critical) %>% 
+  summarise(
+    Mean = mean(detail, na.rm = TRUE),
+    SD = sd(detail, na.rm = TRUE),
+    Median = median(detail, na.rm = TRUE),
+    SE = SD/sqrt(n()),
+    Upper = Mean + (1.96*SE),
+    Lower = Mean - (1.96*SE)
+  )
