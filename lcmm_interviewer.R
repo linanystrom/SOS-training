@@ -9,8 +9,6 @@ df <- read_csv("data/interviewer_measures_clean.csv")
 
 # Data wrangling ---------------------------------------------------------------
 
-## Create variable unique id variable?
-
 df <- rename(df, Supportive_transistions = `Supportive transistions`)
 
 x <- 1
@@ -27,15 +25,28 @@ df <- df %>%
     Leading_questions_rc = Leading_questions + x
   )
 
-f <- cbind(Introduction,
-           Free_recall_rc,
-           Guilt_presumption_rc,
-           Funnel_structure_rc,
-           Challenge_inconsistencies_rc,
-           Request_explanation_rc,
-           Reinforce_truth_rc,
-           Supportive_transistions_rc,
-           Leading_questions_rc)~1
+df <- df %>% 
+  rename(
+    INT = Introduction,
+    FR = Free_recall_rc,
+    GP = Guilt_presumption_rc,
+    FS = Funnel_structure_rc,
+    CI = Challenge_inconsistencies_rc,
+    RE = Request_explanation_rc,
+    RT = Reinforce_truth_rc,
+    ST= Supportive_transistions_rc,
+    LQ = Leading_questions_rc
+  )
+
+f <- cbind(INT,
+           FR,
+           GP,
+           FS,
+           CI,
+           RE,
+           RT,
+           ST,
+           LQ)~1
 
 # Functions --------------------------------------------------------------------
 
@@ -80,28 +91,28 @@ plot_model_comparison <- function(model_comparison, wave_title) {
 # Latent class analysis --------------------------------------------------------
 
 set.seed(666)
-M0 <- poLCA(f, df, nclass = 1, nrep = 200, maxiter = 1000, na.rm = FALSE)
-M1 <- poLCA(f, df, nclass = 2, nrep = 200, maxiter = 1000, na.rm = FALSE)
-M2 <- poLCA(f, df, nclass = 3, nrep = 200, maxiter = 1000, na.rm = FALSE)
-M3 <- poLCA(f, df, nclass = 4, nrep = 200, maxiter = 1000, na.rm = FALSE)
+M0 <- poLCA(f, df, nclass = 1, nrep = 200, maxiter = 1000, na.rm = FALSE) #1 class
+M1 <- poLCA(f, df, nclass = 2, nrep = 200, maxiter = 1000, na.rm = FALSE) #2 class
+M2 <- poLCA(f, df, nclass = 3, nrep = 200, maxiter = 1000, na.rm = FALSE) #3 class
+M3 <- poLCA(f, df, nclass = 4, nrep = 200, maxiter = 1000, na.rm = FALSE) #4 class
+M4 <- poLCA(f, df, nclass = 5, nrep = 200, maxiter = 1000, na.rm = FALSE) #5 class
+
 
 entropy_M1 <- calculate_entropy(M1)
 entropy_M2 <- calculate_entropy(M2)
 entropy_M3 <- calculate_entropy(M3)
+entropy_M4 <- calculate_entropy(M4)
 
 model_comparison <- data.frame(
-  Classes = c(2, 3, 4),
-  AIC = c(M1$aic, M2$aic, M3$aic),
-  BIC = c(M1$bic, M2$bic, M3$bic),
-  LogLikelihood = c(M1$ll, M2$ll, M3$ll),
-  Entropy = c(entropy_M1, entropy_M2, entropy_M3)
+  Classes = c( 2, 3, 4, 5),
+  AIC = c( M1$aic, M2$aic, M3$aic, M4$aic),
+  BIC = c( M1$bic, M2$bic, M3$bic, M4$bic),
+  LogLikelihood = c( M1$ll, M2$ll, M3$ll, M4$ll),
+  Entropy = c( entropy_M1, entropy_M2, entropy_M3, entropy_M4)
 )
 
-plot_comparison <- plot_model_comparison(model_comparison, "Test")
 
 df_2 <- cbind(df, "Predicted_class_M3" = M3$predclass)
-
-df_2 <- cbind(df_2, "Predicted_class_M1" = M1$predclass)
 
 write.csv(
   df_2,
@@ -109,76 +120,42 @@ write.csv(
   row.names = FALSE
 )
 
-saveRDS(M3, file = "M03.rds")
-my_model <- readRDS("M03.rds")
-
 M3_freq <- table(df_2$sos_training,df_2$Predicted_class_M3) #0 = Basic, 1 = SoS
 
-M1_freq <- table(df_2$sos_training,df_2$Predicted_class_M1) #0 = Basic, 1 = SoS
+interviewee_df <- read_csv("data/qualtrics_clean.csv")
 
+interviewee_df <- interviewee_df %>% 
+  mutate(
+    interviewee = paste(as.character(id), as.character(interview), sep = "_"))
 
+df_2 <- df_2 %>% 
+  mutate(
+    interviewee = paste(as.character(ID), as.character(Interview_nr), sep = "_"))
 
-#LCMM approach -----------------------------------------------------------------
+interviewee_df <- interviewee_df %>% dplyr::select(c("interviewee",
+                                                     "change_strategy"))
 
-## Deprecated
+interviewer_df <- df_2 %>% dplyr::select(c("interviewee",
+                                           "Predicted_class_M3"))
 
-lcmm_01 <- multlcmm(
-  fixed = Introduction
-  + Free_recall 
-  + Guilt_presumption 
-  + Funnel_structure 
-  + Challenge_inconsistencies 
-  + Request_explanation 
-  + Reinforce_truth
-  + Supportive_transistions
-  + Leading_questions
-  ~ 1,
-  random  = ~ 1 + ID,
-  subject = "ID",
-  ng      = 1,
-  data    = df,
-  verbose = TRUE,
-  nproc = 6
-)
+class_change_df <- merge(interviewee_df,
+                         interviewer_df,
+                         by = c("interviewee"),
+                         na.rm = FALSE)
 
-# STOP
+class_change = data.frame(class_change_df$Predicted_class_M3,
+                          class_change_df$change_strategy)
 
-lcmm_02 <- multlcmm(
-  fixed = Introduction
-  + Free_recall 
-  + Guilt_presumption 
-  + Funnel_structure 
-  + Challenge_inconsistencies 
-  + Request_explanation 
-  + Reinforce_truth
-  + Supportive_transistions
-  + Leading_questions
-  ~ 1,
-  mixture = ~ 1 + ID,
-  random  = ~ 1 + ID,
-  subject = "ID",
-  ng      = 2,
-  data    = df,
-  B       = lcmm_01,
-  verbose = TRUE
-)
+## Change strategy:  1 = "Yes", 2 = "No" 
 
-lcmm_03 <- multlcmm(
-  fixed = Introduction
-  + Free_recall 
-  + Guilt_presumption 
-  + Funnel_structure 
-  + Challenge_inconsistencies 
-  + Request_explanation 
-  + Reinforce_truth
-  + Supportive_transistions
-  + Leading_questions
-  ~ 1,
-  mixture = ~ 1,
-  random  = ~ 1 + ID,
-  subject = "ID",
-  ng      = 3,
-  data    = df,
-  B       = lcmm_01,
-  verbose = TRUE
-)
+change_data = table(class_change_df$Predicted_class_M3,
+                    class_change_df$change_strategy)
+
+change_data_prop <- prop.table(table(class_change_df$Predicted_class_M3,
+                                     class_change_df$change_strategy),
+                                     margin=1)*100
+
+chisq_object <- chisq.test(change_data)
+
+chisq_object$stdres
+

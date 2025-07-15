@@ -226,7 +226,7 @@ emmeans_int <- emmeans::emmeans(interaction_model, specs = ~ sos_training + crit
 
 pairs(emmeans_int)
 
-eff_size(emmeans_int, sigma = sigma(interaction_model), edf = 627)
+emmeans::eff_size(emmeans_int, sigma = sigma(interaction_model), edf = 627)
 
 
 ## Compare model fit
@@ -250,3 +250,4 @@ three_way_interaction_model <- lmer(detail
 summary(three_way_interaction_model)
 
 anova(interaction_model, three_way_interaction_model, refit=FALSE) 
+

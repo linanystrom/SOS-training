@@ -202,7 +202,7 @@ coded_stages_GS <- bind_rows(LN_GS,
                              TL_GS,
                              EN_GS)
 
-## GS ICC ----------------------------------------------------------------------
+## GP ICC ----------------------------------------------------------------------
 
 GS_model <- lmer(Guilt_presumption ~ (1|intro_id) + (1|coded_by),
                     data = coded_stages_GS)

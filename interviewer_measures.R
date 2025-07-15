@@ -4,7 +4,7 @@
 
 ################################################################################
 
-packages <- c("readr", "dplyr", "readxl", "tidyr", "haven")
+packages <- c("readr", "dplyr", "readxl", "tidyr", "haven", "stringr", "corrplot")
 
 lapply(packages, library, character.only = TRUE)
 
@@ -42,6 +42,18 @@ interviewer_merged <- interviewer_merged %>%
 
 interviewer_merged <- interviewer_merged %>% type_convert()
 
+desc_int <- interviewer_merged %>% 
+  group_by(sos_training) %>% 
+  summarise(
+    Mean = mean(Introduction, na.rm = TRUE),
+    SD = sd(Introduction, na.rm = TRUE),
+    Median = median(Introduction, na.rm = TRUE),
+    SE = SD/sqrt(n()),
+    Upper = Mean + (1.96*SE),
+    Lower = Mean - (1.96*SE)
+  )
+
+
 #INT
 
 t.test(Introduction ~ sos_training, data = interviewer_merged)
@@ -57,29 +69,107 @@ chisq.test(interviewer_merged$sos_training, interviewer_merged$Free_recall,
 
 t.test(Guilt_presumption ~ sos_training, data = interviewer_merged)
 
+desc_gp <- interviewer_merged %>% 
+  group_by(sos_training) %>% 
+  summarise(
+    Mean = mean(Guilt_presumption, na.rm = TRUE),
+    SD = sd(Guilt_presumption, na.rm = TRUE),
+    Median = median(Guilt_presumption, na.rm = TRUE),
+    SE = SD/sqrt(n()),
+    Upper = Mean + (1.96*SE),
+    Lower = Mean - (1.96*SE)
+  )
+
 #FS
 
 t.test(Funnel_structure ~ sos_training, data = interviewer_merged)
+
+desc_fs <- interviewer_merged %>% 
+  group_by(sos_training) %>% 
+  summarise(
+    Mean = mean(Funnel_structure, na.rm = TRUE),
+    SD = sd(Funnel_structure, na.rm = TRUE),
+    Median = median(Funnel_structure, na.rm = TRUE),
+    SE = SD/sqrt(n()),
+    Upper = Mean + (1.96*SE),
+    Lower = Mean - (1.96*SE)
+  )
 
 #CI
 
 t.test(Challenge_inconsistencies ~ sos_training, data = interviewer_merged)
 
+desc_ci <- interviewer_merged %>% 
+  group_by(sos_training) %>% 
+  summarise(
+    Mean = mean(Challenge_inconsistencies, na.rm = TRUE),
+    SD = sd(Challenge_inconsistencies, na.rm = TRUE),
+    Median = median(Challenge_inconsistencies, na.rm = TRUE),
+    SE = SD/sqrt(n()),
+    Upper = Mean + (1.96*SE),
+    Lower = Mean - (1.96*SE)
+  )
+
 #RE
 
 t.test(Request_explanation ~ sos_training, data = interviewer_merged)
+
+desc_re <- interviewer_merged %>% 
+  group_by(sos_training) %>% 
+  summarise(
+    Mean = mean(Request_explanation, na.rm = TRUE),
+    SD = sd(Request_explanation, na.rm = TRUE),
+    Median = median(Request_explanation, na.rm = TRUE),
+    SE = SD/sqrt(n()),
+    Upper = Mean + (1.96*SE),
+    Lower = Mean - (1.96*SE)
+  )
 
 #RT
 
 t.test(Reinforce_truth ~ sos_training, data = interviewer_merged)
 
+desc_rt <- interviewer_merged %>% 
+  group_by(sos_training) %>% 
+  summarise(
+    Mean = mean(Reinforce_truth, na.rm = TRUE),
+    SD = sd(Reinforce_truth, na.rm = TRUE),
+    Median = median(Reinforce_truth, na.rm = TRUE),
+    SE = SD/sqrt(n()),
+    Upper = Mean + (1.96*SE),
+    Lower = Mean - (1.96*SE)
+  )
+
+
 #ST
 
 t.test(`Supportive transistions` ~ sos_training, data = interviewer_merged)
 
+desc_st <- interviewer_merged %>% 
+  group_by(sos_training) %>% 
+  summarise(
+    Mean = mean(`Supportive transistions`, na.rm = TRUE),
+    SD = sd(`Supportive transistions`, na.rm = TRUE),
+    Median = median(`Supportive transistions`, na.rm = TRUE),
+    SE = SD/sqrt(n()),
+    Upper = Mean + (1.96*SE),
+    Lower = Mean - (1.96*SE)
+  )
+
 #LQ
 
 t.test(Leading_questions ~ sos_training, data = interviewer_merged)
+
+desc_lq <- interviewer_merged %>% 
+  group_by(sos_training) %>% 
+  summarise(
+    Mean = mean(Leading_questions, na.rm = TRUE),
+    SD = sd(Leading_questions, na.rm = TRUE),
+    Median = median(Leading_questions, na.rm = TRUE),
+    SE = SD/sqrt(n()),
+    Upper = Mean + (1.96*SE),
+    Lower = Mean - (1.96*SE)
+  )
 
 
 # Measures predicting information disclosure -----------------------------------
@@ -215,6 +305,13 @@ cor(
          Leading_questions),
   use = "pairwise.complete"
 )
+
+corr_plot <- corrplot(cormat_details,
+                      type = "lower",
+                      tl.col = "black",
+                      tl.cex = 0.7,
+                      tl.srt = 45,
+                      )
 
 ## Main effects
 
