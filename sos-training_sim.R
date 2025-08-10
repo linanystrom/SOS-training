@@ -214,8 +214,8 @@ transform_detail <- sort_detail_data %>% mutate(
 
 # Save data --------------------------------------------------------------------
 
-write.csv(
-  transform_detail,
-  "./sim_training.csv",
-  row.names = FALSE
-)
+#write.csv(
+ # transform_detail,
+ # "./sim_training.csv",
+#row.names = FALSE
+#)

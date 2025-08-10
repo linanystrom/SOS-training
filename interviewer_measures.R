@@ -4,7 +4,7 @@
 
 ################################################################################
 
-packages <- c("readr", "dplyr", "readxl", "tidyr", "haven", "stringr", "corrplot")
+packages <- c("readr", "dplyr", "readxl", "tidyr", "haven", "stringr", "corrplot", "lme4")
 
 lapply(packages, library, character.only = TRUE)
 
@@ -381,7 +381,20 @@ write.csv(
   row.names = FALSE
 )
 
+test <- detail_merged %>% 
+  select(overall_sum,
+         critical_sum,
+         Introduction,
+         Free_recall,
+         Guilt_presumption,
+         Funnel_structure,
+         Challenge_inconsistencies,
+         Request_explanation,
+         Reinforce_truth,
+         `Supportive transistions`,
+         Leading_questions)
 
+test_corr <- rcorr(as.matrix(test))
 
-
+test_p <- test_corr
 

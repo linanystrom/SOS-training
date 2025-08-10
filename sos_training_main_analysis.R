@@ -226,5 +226,7 @@ three_way_interaction_model <- lmer(detail
 
 summary(three_way_interaction_model)
 
-anova(interaction_model, three_way_interaction_model, refit=FALSE) 
+anova(interaction_model,
+      three_way_interaction_model,
+      refit=FALSE) 
 
