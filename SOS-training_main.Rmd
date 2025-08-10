@@ -1,0 +1,385 @@
+---
+title: "SoS Training - Main report"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    theme: darkly
+    toc: yes
+    toc_float:
+      collapsed: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+source("sos-training_demo.R")
+source("./ICC/ICC.R")
+source("sos-training_interviewee.R")
+source("sos_training_main_analysis.R")
+source("interviewer_measures.R")
+source("lcmm_interviewer.R")
+source("interviewer_icc.R")
+```
+
+
+# Demographics
+
+## Interviewers
+
+### Age
+```{r interviewer_age, echo=FALSE}
+interviewer_age_table
+```
+
+### Gender
+```{r interviewer_gender, echo=FALSE}
+interviewer_gender_table
+```
+
+## Interviewees
+
+### Age
+```{r nterviewee_age, echo=FALSE}
+interviewee_age_table
+```
+
+### Gender
+```{r interviewee_gender, echo=FALSE}
+interviewee_gender_table
+```
+
+# Coding Agreement, Information Disclosure 
+
+## Intraclass Correlation Coefficient
+```{r ICC coding, echo=FALSE}
+icc_coder_realiability
+```
+
+## 95% Confidnce Interval
+```{r ICC coding CI, echo=FALSE}
+disclosure_ci_icc
+```
+
+# Preliminary Analyses
+
+## Suspect Motivation
+
+### Descriptives
+```{r, echo=FALSE}
+motivation_desc
+```
+
+### Pairwise Comparison, Training
+```{r, echo=FALSE}
+motivation_test
+```
+
+## Engagement
+```{r, echo=FALSE}
+engagement_desc
+```
+
+### Pairwise Comparison, Training
+```{r, echo=FALSE}
+engagement_test
+```
+
+## Confidence
+```{r, echo=FALSE}
+condidence_desc
+```
+
+### Pairwise Comparison, Training
+```{r, echo=FALSE}
+confidence_test
+```
+
+# Hypothesis Testing, Information Disclosure
+
+## Main Effect Model
+```{r, echo=FALSE}
+summary(simple_model)
+```
+
+## Interaction Effect Model
+```{r, echo=FALSE}
+summary(interaction_model)
+```
+
+## Model Comparison
+```{r, echo=FALSE}
+model_comp
+```
+
+# Interviewer Tactics
+
+## Correlation table, Interviewer Tactics and Information Disclosure
+
+```{r}
+
+knitr::kable(cormat_details, digits = 2)
+
+```
+
+### Correlogram, Interviewer Tactics and Information Disclosure
+
+```{r}
+corr_plot <- corrplot(cormat_details,
+                      type = "lower",
+                      tl.col = "black",
+                      tl.cex = 0.7,
+                      tl.srt = 45,
+                      )
+```
+
+## Models Predicting Information disclosure
+
+### Overall infromation
+```{r, echo=FALSE}
+summary(tactic_simple_model)
+```
+
+### Critical information
+```{r, echo=FALSE}
+summary(simple_model_crit)
+```
+
+### Mean Information Disclosure for Noncritical and Critical Details, by Training (with a 95% Confidence Interval). 
+
+```{r}
+mean_plot
+```
+
+### Mean Information Disclosure Across the Four Interviews, by Detail Type. 
+
+Information disclosure (0–5) is plotted on the vertical axis. The two panels represent noncritical (left) and critical (right) details. Within each panel, the four interviews are plotted on the horizontal axis. The bold lines track the mean information disclosure at each interview for the two training types (with a 95% confidence interval).
+
+```{r}
+inital_plot
+```
+
+
+# Exloring Classes of Interviews
+
+## Model Comparison for Latent Class Analyses with 2,3,4 & 5 Classes
+```{r}
+model_comparison
+```
+
+## Plots with Estimated Class-Conditional Response Probabilities and Estimated Population Proportion in Aach Class.
+
+INT = Introduction FR = Free Recall GP = Guilt presumption (Higher
+scores indicate less use) FS = Funnel Structure CI = Challenging
+Inconsistencies RE = Request Explanation RT = Reinforce Truth ST =
+Supportive Transistions LQ = Leading Questions (Higher scores indicate
+less use)
+
+### 2-Class Solution
+
+```{r, out.width="100%"}
+plot(M1)
+```
+
+### 3-Class Solution
+
+```{r, out.width="100%"}
+plot(M2)
+```
+
+### 4-Class Solution
+
+```{r, out.width="100%"}
+plot(M3)
+```
+
+### 5-Class Solution
+
+```{r, out.width="100%"}
+plot(M4)
+```
+
+## Predicted Class-Membership for 4-class Solution, Split by Training
+
+Class by Columns, Training by rows.
+
+0 = Basic training 1 = SoS training
+
+```{r}
+M3_freq
+```
+
+# Post-Interview Questionnaire
+
+## Suspects’ Assessment of Performance
+```{r, echo=FALSE}
+performance_desc
+
+summary(performance_simple_model)
+```
+
+## Interviewer Pre-Existing Knowledge
+```{r, echo=FALSE}
+knowledge_desc
+
+summary(knowledge_simple_model)
+```
+
+## Perception of How Much New Information was Disclosed
+```{r, echo=FALSE}
+yield_desc
+
+summary(yield_simple_model)
+```
+
+## Change Strategy
+```{r, echo=FALSE}
+change_strat_desc
+
+summary(change_strat_main_model)
+```
+
+## Suspects' Self-Report of Changing Strategy, Split by Predicted Class-Membership (4-Class Solution)
+
+Change strategy: 1 = "Yes", 2 = "No".
+Class enumeration presented above.
+
+### Contigency Table
+```{r}
+change_data
+
+```
+
+### Proption Table
+```{r}
+change_data_prop
+```
+
+### Chi-Squared Test
+```{r, echo=FALSE}
+chisq_prop
+```
+
+#### Standardarized Residuals
+```{r}
+chisq_object$stdres
+```
+
+# Supplemental Tables 
+
+## Descriptives for Information Disclosure, Split by Condition, Interview and Detail Type
+```{r}
+knitr::kable(desc_by_interview, digits = 2)
+```
+
+
+## Overall and Critical information disclosure, Split by Predcited Class-Membership (4-Class solution)
+
+```{r}
+desc_class_info
+```
+
+# Coding Agreement, Interviewer tactics
+
+## Introduction
+
+### ICC
+```{r}
+intro_icc
+```
+
+## CI
+```{r}
+intro_ci_icc
+```
+
+## Free Recall
+
+### Gwet's AC1
+```{r}
+gwet.ac1.raw(FR_wide)
+```
+
+## Guilt persumption
+
+### ICC
+```{r}
+GS_icc
+```
+
+### CI
+```{r}
+GS_ci_icc
+```
+
+## Funnel Structure
+
+### ICC
+```{r}
+FS_icc
+```
+
+### CI
+```{r}
+FS_ci_icc
+```
+
+## Challenging inconsistencies
+
+### ICC
+```{r}
+CI_icc
+```
+
+### CI
+```{r}
+CI_ci_icc
+```
+
+## Request explanation
+
+### ICC
+```{r}
+RE_icc
+```
+
+### CI
+```{r}
+RE_ci_icc
+```
+
+## Reinforce truth
+
+### ICC
+```{r}
+RT_icc
+```
+
+### CI
+```{r}
+RT_ci_icc
+```
+
+## Supportive transitions
+
+### ICC
+```{r}
+ST_icc
+```
+
+### CI
+```{r}
+ST_ci_icc
+```
+
+## Leading questions
+
+### ICC
+```{r}
+LQ_icc
+```
+
+### CI
+```{r}
+LQ_ci_icc
+```
+
