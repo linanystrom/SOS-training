@@ -29,22 +29,22 @@ icc_boot <- function(x) {
 
 ## Load data -------------------------------------------------------------------
 
-LN <- read_xlsx("./data/ICC/LN.xlsx") 
+LN <- read_xlsx("./data/ICC_coders/LN.xlsx") 
 
-TL <- read_xlsx("./data/ICC/TL.xlsx") 
+TL <- read_xlsx("./data/ICC_coders/TL.xlsx") 
 
-EN <- read_xlsx("./data/ICC/EN.xlsx") 
+EN <- read_xlsx("./data/ICC_coders/EN.xlsx") 
 
-AK <- read_xlsx("./data/ICC/AK.xlsx") %>% 
+AK <- read_xlsx("./data/ICC_coders/AK.xlsx") %>% 
   filter(!is.na(Introduction))
 
-AT <- read_xlsx("./data/ICC/AT.xlsx") %>% 
+AT <- read_xlsx("./data/ICC_coders/AT.xlsx") %>% 
   filter(!is.na(Introduction))
 
-GS <- read_xlsx("./data/ICC/GS.xlsx") %>% 
+GS <- read_xlsx("./data/ICC_coders/GS.xlsx") %>% 
   filter(!is.na(Introduction))
 
-BB <- read_xlsx("./data/ICC/BB.xlsx") %>% 
+BB <- read_xlsx("./data/ICC_coders/BB.xlsx") %>% 
   filter(!is.na(Introduction))
 
 # Introduction ----------------------------------------------------------------

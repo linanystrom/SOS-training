@@ -62,7 +62,7 @@ my_df <- read_csv("data/excell_long.csv")
 
 
 merge_data <- my_df  %>% 
-  select(c("interviewee", "sos_training")) 
+  select(c("interviewee", "sos_training", "condition")) 
 
 
 merge_data <- unique(merge_data)
@@ -109,13 +109,44 @@ interviewer_df <- interviewer_df %>%
       new_info_interviewer == 5 ~ 5,
       new_info_interviewer == 6 ~ 6,
       new_info_interviewer == "A substantial amount" ~ 7))
+
+
+clean_interviewer_df <- interviewer_df  %>% 
+  select(c("interviewer", "condition","interview", "sos_training", "interviewer_age",
+           "interviewer_gender", "training", "training_desc", "planning_int",
+           "conducting_int", "new_info_interviewer", "training_qual",
+           "different_qual")) 
+
+clean_interviewer_df <- clean_interviewer_df %>%
+  group_by(interviewer) %>% 
+  fill(interviewer_age, .direction = "downup") %>%
+  ungroup
+
+clean_interviewer_df <- clean_interviewer_df %>%
+  group_by(interviewer) %>% 
+  fill(interviewer_gender, .direction = "downup") %>%
+  ungroup
+
+write.csv(
+  clean_interviewer_df,
+  "data/clean_interviewer_df.csv",
+  row.names = FALSE
+)
+
+
+
+write.xlsx(
+  clean_interviewer_df,
+  "data/clean_interviewer_df.xlsx"
+)
+
       
 
 # Self assessment of Planning --------------------------------------------------
 
 
 planning_desc <- interviewer_df %>% 
-  group_by(sos_training) %>% 
+  group_by(sos_training, interview) %>% 
   summarise(
     Mean = mean(planning_int, na.rm = TRUE),
     SD = sd(planning_int, na.rm = TRUE),
@@ -163,7 +194,7 @@ anova(planning_simple_model, planning_interaction_model, refit=FALSE)
 # Self-assessment of Performance -----------------------------------------------
 
 conducting_desc <- interviewer_df %>% 
-  group_by(sos_training) %>% 
+  group_by(sos_training, interview) %>% 
   summarise(
     Mean = mean(conducting_int, na.rm = TRUE),
     SD = sd(conducting_int, na.rm = TRUE),
@@ -207,7 +238,7 @@ anova(conducting_simple_model, conducting_interaction_model, refit=FALSE)
 # Self-assessment of new information yield -------------------------------------
 
 new_info_interviewer_desc <- interviewer_df %>% 
-  group_by(sos_training) %>% 
+  group_by(sos_training, interview) %>% 
   summarise(
     Mean = mean(new_info_interviewer, na.rm = TRUE),
     SD = sd(new_info_interviewer, na.rm = TRUE),

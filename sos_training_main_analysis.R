@@ -6,7 +6,8 @@
 # Basic setup ------------------------------------------------------------------
 
 packages <- c("gtools", "readr", "tibble", "dplyr", "data.table", "tidyr",
-              "readxl", "ggplot2", "lme4", "lmerTest")
+              "readxl", "ggplot2", "lme4", "lmerTest", "sjPlot", "performance",
+              "jtools")
 
 lapply(packages, library, character.only = TRUE)
 
@@ -82,8 +83,16 @@ mean_plot <- ggplot(desc, aes(x = critical,
                               color = "Training"
                               ) +
                           scale_color_manual(values = c(
-                              "#607466",
-                              "#E00078"))
+                              "#939393",
+                              "#CE699C")) +
+  theme_classic()
+
+ggsave(
+  "s3_i.tiff",
+  width = 5.5,
+  height = 3.51,
+  dpi = 300
+)
 
 
 ## Plotting information disclosure over the 6 interviews for each condition
@@ -208,7 +217,42 @@ emmeans::eff_size(emmeans_int, sigma = sigma(interaction_model), edf = 627)
 
 ## Compare model fit
 
-model_comp <- anova(simple_model, interaction_model, refit=FALSE) 
+model_comp <- anova(simple_model, interaction_model, refit=FALSE)
+
+## Assumption testing (Interaction effect model)
+
+### Assumption of Homogeneity
+
+res <- data.frame(predicted=predict(interaction_model), residual
+                  = residuals(interaction_model))
+
+hom_plot <- ggplot(res,aes(x=predicted,y=residual)) +
+  geom_jitter(width = 0.2, height = 0.2) +
+  geom_hline(yintercept=0, lty=3) +
+  scale_y_continuous(breaks = c(-3, -2, -1, 0, 1, 2)) +
+  labs(
+    x = "Predicted",
+    y = "Residual"
+  ) + theme_apa()
+
+## Assumption of collinearity
+
+cc <- check_collinearity(simple_model)
+
+## Assumption of normality of residuals
+
+res_plot <- ggplot(res,aes(x=residual)) +
+  geom_histogram(bins=20, color="black") +
+  labs(
+    x = "Residual",
+    y = "Count"
+  ) + theme_apa()
+
+quant_plot <- ggplot(res,aes(sample=residual)) + stat_qq() + stat_qq_line() +
+  labs(
+    x = "Theoretical Quantiles",
+    y = "Sample Quantiles"
+  ) + theme_apa()
 
 
 # 3- way Interaction effects

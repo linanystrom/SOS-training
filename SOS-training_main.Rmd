@@ -2,9 +2,11 @@
 title: "SoS Training - Main report"
 date: "`r Sys.Date()`"
 output:
+  pdf_document:
+    toc: true
   html_document:
     theme: darkly
-    toc: yes
+    toc: true
     toc_float:
       collapsed: true
 ---
@@ -19,6 +21,7 @@ source("sos_training_main_analysis.R")
 source("interviewer_measures.R")
 source("lcmm_interviewer.R")
 source("interviewer_icc.R")
+set.seed(666)
 ```
 
 
@@ -52,11 +55,13 @@ interviewee_gender_table
 
 ## Intraclass Correlation Coefficient
 ```{r ICC coding, echo=FALSE}
+set.seed(666)
 icc_coder_realiability
 ```
 
 ## 95% Confidnce Interval
 ```{r ICC coding CI, echo=FALSE}
+set.seed(666)
 disclosure_ci_icc
 ```
 
@@ -65,6 +70,7 @@ disclosure_ci_icc
 ## Suspect Motivation
 
 ### Descriptives
+Possible range = 1-7
 ```{r, echo=FALSE}
 motivation_desc
 ```
@@ -75,6 +81,7 @@ motivation_test
 ```
 
 ## Engagement
+Possible range = 1-7
 ```{r, echo=FALSE}
 engagement_desc
 ```
@@ -85,6 +92,7 @@ engagement_test
 ```
 
 ## Confidence
+Possible range = 1-7
 ```{r, echo=FALSE}
 condidence_desc
 ```
@@ -111,6 +119,45 @@ summary(interaction_model)
 model_comp
 ```
 
+## Estimated marginal means, interaction effect model 
+```{r}
+emmeans_int
+```
+
+### Pairs
+1st row reflects difference in noncritical details (Basic vs. SoS)
+6th row reflects difference in critical details (Basic vs. SoS)
+```{r}
+pairs(emmeans_int)
+```
+
+### Standardized effect sizes
+1st row reflects difference in noncritical details (Basic vs. SoS)
+6th row reflects difference in critical details (Basic vs. SoS)
+```{r}
+emmeans::eff_size(emmeans_int, sigma = sigma(interaction_model), edf = 627)
+```
+
+## Assumption testing
+
+### Assumption of Homogeneity
+```{r}
+hom_plot
+```
+
+### Assumption of collinearity
+```{r}
+cc
+```
+
+### Assumption of normality of residuals
+```{r}
+res_plot
+quant_plot
+```
+
+
+
 # Interviewer Tactics
 
 ## Correlation table, Interviewer Tactics and Information Disclosure
@@ -130,6 +177,22 @@ corr_plot <- corrplot(cormat_details,
                       tl.cex = 0.7,
                       tl.srt = 45,
                       )
+```
+
+### Correlation table, Interviewer Tactics and Information Disclosure (Basic)
+
+```{r}
+knitr::kable(cormat_details_b, digits = 2)
+
+knitr::kable(cor.mat_b, digits = 2)
+```
+
+### Correlation table, Interviewer Tactics and Information Disclosure (SoS)
+
+```{r}
+knitr::kable(cormat_details_s, digits = 2)
+
+knitr::kable(cor.mat_s, digits = 2)
 ```
 
 ## Models Predicting Information disclosure
@@ -163,10 +226,11 @@ inital_plot
 
 ## Model Comparison for Latent Class Analyses with 2,3,4 & 5 Classes
 ```{r}
+set.seed(666)
 model_comparison
 ```
 
-## Plots with Estimated Class-Conditional Response Probabilities and Estimated Population Proportion in Aach Class.
+## Plots with Estimated Class-Conditional Response Probabilities and Estimated Population Proportion in each Class.
 
 INT = Introduction FR = Free Recall GP = Guilt presumption (Higher
 scores indicate less use) FS = Funnel Structure CI = Challenging

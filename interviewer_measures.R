@@ -4,7 +4,8 @@
 
 ################################################################################
 
-packages <- c("readr", "dplyr", "readxl", "tidyr", "haven", "stringr", "corrplot", "lme4")
+packages <- c("readr", "dplyr", "readxl", "tidyr", "haven", "stringr",
+              "corrplot", "lme4", "lsr", "rstatix", "Hmisc")
 
 lapply(packages, library, character.only = TRUE)
 
@@ -58,6 +59,8 @@ desc_int <- interviewer_merged %>%
 
 t.test(Introduction ~ sos_training, data = interviewer_merged)
 
+cohensD(Introduction ~ sos_training, method = "unequal", data = interviewer_merged)
+
 #FR
 
 FR_data <- table(interviewer_merged$sos_training, interviewer_merged$Free_recall)
@@ -85,9 +88,12 @@ desc_gp <- interviewer_merged %>%
     Lower = Mean - (1.96*SE)
   )
 
+cohensD(Guilt_presumption ~ sos_training, method = "unequal", data = interviewer_merged)
+
 #FS
 
 t.test(Funnel_structure ~ sos_training, data = interviewer_merged)
+cohensD(Funnel_structure ~ sos_training, method = "unequal", data = interviewer_merged)
 
 desc_fs <- interviewer_merged %>% 
   group_by(sos_training) %>% 
@@ -103,6 +109,7 @@ desc_fs <- interviewer_merged %>%
 #CI
 
 t.test(Challenge_inconsistencies ~ sos_training, data = interviewer_merged)
+cohensD(Challenge_inconsistencies ~ sos_training, method = "unequal", data = interviewer_merged)
 
 desc_ci <- interviewer_merged %>% 
   group_by(sos_training) %>% 
@@ -118,6 +125,7 @@ desc_ci <- interviewer_merged %>%
 #RE
 
 t.test(Request_explanation ~ sos_training, data = interviewer_merged)
+cohensD(Request_explanation ~ sos_training, method = "unequal", data = interviewer_merged)
 
 desc_re <- interviewer_merged %>% 
   group_by(sos_training) %>% 
@@ -133,6 +141,7 @@ desc_re <- interviewer_merged %>%
 #RT
 
 t.test(Reinforce_truth ~ sos_training, data = interviewer_merged)
+cohensD(Reinforce_truth ~ sos_training, method = "unequal", data = interviewer_merged)
 
 desc_rt <- interviewer_merged %>% 
   group_by(sos_training) %>% 
@@ -149,6 +158,7 @@ desc_rt <- interviewer_merged %>%
 #ST
 
 t.test(`Supportive transistions` ~ sos_training, data = interviewer_merged)
+cohensD(`Supportive transistions` ~ sos_training, method = "unequal", data = interviewer_merged)
 
 desc_st <- interviewer_merged %>% 
   group_by(sos_training) %>% 
@@ -164,6 +174,7 @@ desc_st <- interviewer_merged %>%
 #LQ
 
 t.test(Leading_questions ~ sos_training, data = interviewer_merged)
+cohensD(Leading_questions ~ sos_training, method = "unequal", data = interviewer_merged)
 
 desc_lq <- interviewer_merged %>% 
   group_by(sos_training) %>% 
@@ -277,6 +288,30 @@ detail_merged <- merge(int_solved, detail_data, by = c("ID", "interview"))
 
 detail_merged <- detail_merged %>%type_convert()
 
+detail_merged <- detail_merged %>% 
+  mutate(sos_training = if_else(condition == "SoS-Delay", case_when(
+    interview == 1 ~ 0,
+    interview == 2 ~ 0,
+    interview == 3 ~ 1,
+    interview == 4 ~ 1
+  ),
+  ifelse(condition == "Basic", case_when(
+    interview == 1 ~ 0,
+    interview == 2 ~ 0,
+    interview == 3 ~ 0,
+    interview == 4 ~ 0
+
+  ),
+  ifelse(condition == "SoS", case_when(
+    interview == 1 ~ 1,
+    interview == 2 ~ 1,
+    interview == 3 ~ 1,
+    interview == 4 ~ 1
+  ), NA))))
+
+detail_merged_b <- detail_merged %>% filter(sos_training == 0)
+detail_merged_s <- detail_merged %>% filter(sos_training == 1)
+
 # Predicting overall details ---------------------------------------------------
 
 ## Model created to assess variance attributed to random effects
@@ -311,12 +346,94 @@ cor(
   use = "pairwise.complete"
 )
 
+cor_data <- select(detail_merged,
+                    overall_sum,
+                    critical_sum,
+                    Introduction,
+                    Free_recall,
+                    Guilt_presumption,
+                    Funnel_structure,
+                    Challenge_inconsistencies,
+                    Request_explanation,
+                    Reinforce_truth,
+                    `Supportive transistions`,
+                    Leading_questions)
+
+cor.mat <- cor_data %>% cor_pmat()
+
 corr_plot <- corrplot(cormat_details,
                       type = "lower",
                       tl.col = "black",
                       tl.cex = 0.7,
                       tl.srt = 45,
                       )
+### Basic
+
+cormat_details_b <- 
+  cor(
+    select(detail_merged_b,
+           overall_sum,
+           critical_sum,
+           Introduction,
+           Free_recall,
+           Guilt_presumption,
+           Funnel_structure,
+           Challenge_inconsistencies,
+           Request_explanation,
+           Reinforce_truth,
+           `Supportive transistions`,
+           Leading_questions),
+    use = "pairwise.complete"
+  )
+
+cor_data_b <- select(detail_merged_b,
+                   overall_sum,
+                   critical_sum,
+                   Introduction,
+                   Free_recall,
+                   Guilt_presumption,
+                   Funnel_structure,
+                   Challenge_inconsistencies,
+                   Request_explanation,
+                   Reinforce_truth,
+                   `Supportive transistions`,
+                   Leading_questions)
+
+cor.mat_b <- cor_data_b %>% cor_pmat()
+
+### SoS
+
+cormat_details_s <- 
+  cor(
+    select(detail_merged_s,
+           overall_sum,
+           critical_sum,
+           Introduction,
+           Free_recall,
+           Guilt_presumption,
+           Funnel_structure,
+           Challenge_inconsistencies,
+           Request_explanation,
+           Reinforce_truth,
+           `Supportive transistions`,
+           Leading_questions),
+    use = "pairwise.complete"
+  )
+
+cor_data_s <- select(detail_merged_s,
+                     overall_sum,
+                     critical_sum,
+                     Introduction,
+                     Free_recall,
+                     Guilt_presumption,
+                     Funnel_structure,
+                     Challenge_inconsistencies,
+                     Request_explanation,
+                     Reinforce_truth,
+                     `Supportive transistions`,
+                     Leading_questions)
+
+cor.mat_s <- cor_data_s %>% cor_pmat()
 
 ## Main effects
 
